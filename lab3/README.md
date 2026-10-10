@@ -15,3 +15,20 @@ would occur from those long lived keys
 IAM changes required for OIDC, the damage is limited even if leaked because the
 session-scoped secrets is only 4 hours from the start of pressing Start Lab in
 AWS Academy
+
+ExpiredToken on a deploy: your lab session ended. 
+Start a new one, re-run refresh-gha-creds.sh, re-run the job. 
+Nothing in the repository changes.
+
+"Input required and not supplied: aws-region": the AWS_REGION variable does not exist 
+not a credential problem. Run the refresh script, 
+or gh variable set AWS_REGION --body us-east-1.
+
+
+Terraform version used: 1.10.3
+
+## Experiments
+
+
+
+
