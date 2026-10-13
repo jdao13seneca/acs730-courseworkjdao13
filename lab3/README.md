@@ -29,6 +29,11 @@ Terraform version used: 1.10.3
 
 ## Experiments
 
+End Lab should revoke access using the temporary AWS credentials provided/stored in GitHub Actions. The workflow should then fail when aws sts get-caller-identity attempts to authenticate with those expired credentials. I expect AWS to return an ExpiredToken error or a similar authentication failure. After starting a new lab session and refreshing the GitHub Actions credentials, the workflow should succeed again without requiring any repository file changes.  
+Observed: The workflow instead reached terraform init and failed while trying to access lab3/terraform.tfstate in the S3 backend, returning HTTP 403 Forbidden. After starting a new lab session and rerunning refresh-gha-creds.sh, the workflow succeeded again with no repository file changes, confirming that the issue was expired temporary credentials rather than the Terraform code.
+Remove the backend
+
+Commenting out the backend "s3" block and running terraform init -migrate-state moved Terraform away from the shared S3 backend and resulted in local state being used. When I ran terraform plan, Terraform proposed creating the existing SSM parameter again with 1 to add, 0 to change, 0 to destroy, showing that without the shared backend it no longer had the same state information. After the experiment, I restored the S3 backend, reinitialized Terraform, and removed the local terraform.tfstate file.
 
 
 
