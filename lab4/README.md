@@ -1,9 +1,30 @@
-# Lab 4
+## Build and Run
 
-Instructions for this section will be provided in class and on Blackboard when we reach it.
+Build the optimized Docker image from the repository root:
 
-Put your work for Lab 4 in this folder.
+```bash
+docker build -t acs730-lab4:slim lab4/
+```
 
+Run the container:
+
+```bash
+docker run --rm -d --name lab4-app -p 8000:8000 acs730-lab4:slim
+```
+
+Check the health endpoint:
+
+```bash
+curl http://localhost:8000/healthz
+```
+
+Expected response: `{"status":"ok","version":"dev"}`
+
+Stop the container:
+
+```bash
+docker stop lab4-app
+```
 
 ## Docker Image Comparison
 
@@ -37,7 +58,13 @@ after reusing cached layers, it was still slower than the 7-second baseline,
 suggesting that cache and Buildx overhead were not worthwhile for 
 this small application.
 
-### Checkpoint 10 Choice Explanation
+## GHCR Image Tagging
+
+I used SHA-based image tags instead of latest because each tag 
+identifies a specific Git commit, making it easier to track which 
+version of the application was built and deployed.
+
+## Checkpoint 10 Choice Explanation
 
 Composite Action: I used a composite action to combine Python setup, 
 pip caching, and dependency installation into reusable steps that 
@@ -46,3 +73,39 @@ run on the same runner as the tests.
 Reusable Workflow: I used a reusable workflow for Docker image building 
 because it runs as a separate job with its own runner and permissions, 
 including packages: write, which the test job does not require.
+
+
+## GitHub Actions vs. AWS-Native CI/CD
+
+GitHub Actions uses GitHub-hosted runners to run jobs, while AWS uses 
+CodePipeline to manage the pipeline and CodeBuild to run the jobs. AWS 
+also uses ECR to store Docker images instead of GHCR. For credentials, 
+GitHub Actions uses "GITHUB_TOKEN" to publish images to GHCR, while AWS 
+services rely on IAM roles and permissions. I would recommend GitHub 
+Actions for this lab because we were able to build and test our 
+pipeline without running into the IAM restrictions in AWS Academy, 
+which would make setting up an AWS-native pipeline more difficult.
+
+
+## Experiments
+
+## Experiment 1 — Docker Image Optimization
+
+I compared a naive Docker image using python:latest with an optimized 
+image using python:3.12-slim-bookworm. The original image was 1.15 GB, 
+while the optimized image was only 130 MB. I also noticed that the 
+rebuild time decreased from 5.892 seconds to 0.620 seconds because 
+Docker reused the cached dependency layer. This showed me how choosing 
+a smaller base image and using Docker layer caching can improve build 
+efficiency.
+
+## Experiment 2 — CI Caching
+
+I tested pip caching and Docker layer caching in GitHub Actions to see 
+whether they improved pipeline performance. The pip installation time 
+decreased from 3 seconds on a cache miss to 1 second on a cache hit, 
+while the Docker build step decreased from 19 seconds to 13 seconds. 
+However, the overall workflow still took 71 seconds compared to the 
+original 41-second baseline. This showed me that caching can improve 
+individual steps but may not always improve the entire pipeline, 
+especially for smaller projects.
