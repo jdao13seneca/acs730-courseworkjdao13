@@ -6,4 +6,6 @@
 credentials
 eof
 ls
-
+__pycache__/
+*.pyc
+.pytest_cache/
