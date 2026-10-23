@@ -36,3 +36,13 @@ Docker cache: Although the build step improved from 19 seconds to 13 seconds
 after reusing cached layers, it was still slower than the 7-second baseline, 
 suggesting that cache and Buildx overhead were not worthwhile for 
 this small application.
+
+### Checkpoint 10 Choice Explanation
+
+Composite Action: I used a composite action to combine Python setup, 
+pip caching, and dependency installation into reusable steps that 
+run on the same runner as the tests.
+
+Reusable Workflow: I used a reusable workflow for Docker image building 
+because it runs as a separate job with its own runner and permissions, 
+including packages: write, which the test job does not require.
