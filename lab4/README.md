@@ -20,3 +20,4 @@ more packages and tools.
 
 3. The .dockerignore file had excluded unnecessary files that were identified
 in Part 4 Step 1, where we see it will ignore git data, markdown files, images.
+
