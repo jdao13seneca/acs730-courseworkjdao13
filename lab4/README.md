@@ -89,23 +89,28 @@ which would make setting up an AWS-native pipeline more difficult.
 
 ## Experiments
 
-## Experiment 1 — Docker Image Optimization
+## Experiment 1 -  Invert the Layer Order
 
-I compared a naive Docker image using python:latest with an optimized 
-image using python:3.12-slim-bookworm. The original image was 1.15 GB, 
-while the optimized image was only 130 MB. I also noticed that the 
-rebuild time decreased from 5.892 seconds to 0.620 seconds because 
-Docker reused the cached dependency layer. This showed me how choosing 
-a smaller base image and using Docker layer caching can improve build 
-efficiency.
+Prediction: I predicted that moving COPY app.py ./ before installing 
+dependencies would make rebuilds slower because changing the 
+application code would cause Docker to reinstall the dependencies.
 
-## Experiment 2 — CI Caching
+Result: After changing app.py, the rebuild took 5.058 seconds, with 4.1 
+seconds spent reinstalling dependencies. When I rebuilt without making 
+another change, Docker reused the cached layers and completed the build 
+in approximately 0.2 seconds. This showed me why placing the dependency 
+installation before application code is more efficient for future 
+rebuilds.
 
-I tested pip caching and Docker layer caching in GitHub Actions to see 
-whether they improved pipeline performance. The pip installation time 
-decreased from 3 seconds on a cache miss to 1 second on a cache hit, 
-while the Docker build step decreased from 19 seconds to 13 seconds. 
-However, the overall workflow still took 71 seconds compared to the 
-original 41-second baseline. This showed me that caching can improve 
-individual steps but may not always improve the entire pipeline, 
-especially for smaller projects.
+## Experiment 2 -  Removing .dockerignore
+
+Prediction: I predicted that removing .dockerignore would increase the 
+build context, but the final optimized image would stay around the same 
+size because the Dockerfile only copies specific files.
+
+Result: After removing .dockerignore, the build context was 473 bytes, 
+and the final image remained 130 MB. When I checked /app, I only saw 
+app.py and requirements.txt. This showed me that the optimized 
+Dockerfile prevents unnecessary files from being included in the final 
+image, unlike a Dockerfile using COPY . ., which could include 
+additional files without .dockerignore.
